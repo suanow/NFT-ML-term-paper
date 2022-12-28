@@ -32,9 +32,10 @@ def get_activity_collection(API: str, address: str, limit: int) -> json:
     data = json.loads(response.text)
     
     logging.info("Creating a dictionary")
-    activity = {"marketplace": data['nftSales'][0]['marketplace'],
-                "tokenId": data['nftSales'][0]['tokenId'],
-                "price": int(data['nftSales'][0]['sellerFee']['amount']) / 10 ** 18}
+    activity = [{"tokenId": sale["tokenId"],
+                 "marketplace": sale["marketplace"],
+                 "price": int(sale["sellerFee"]["amount"]) / 10 ** 18} for sale in data["nftSales"]]
+
     
     return activity
 
@@ -47,12 +48,12 @@ def get_activity_token(API: str, address: str, limit: int, tokenId: int) -> json
     data = json.loads(response.text)
     
     logging.info("Creating a dictionary")
-    activity = {"marketplace": data['nftSales'][0]['marketplace'],
-                 "tokenId": data['nftSales'][0]['tokenId'],
-                 "sellerFee": int(data['nftSales'][0]['sellerFee']['amount']) / 10 ** 18,
-                 "protocolFee": int(data['nftSales'][0]['protocolFee']['amount']) / 10 ** 18,
-                 "royaltyFee": int(data['nftSales'][0]['royaltyFee']['amount']) / 10 ** 18,
-                 "payed": (int(data['nftSales'][0]['sellerFee']['amount']) + int(data['nftSales'][0]['protocolFee']['amount']) + int(data['nftSales'][0]['royaltyFee']['amount'])) / 10 ** 18}
+    activity = [{"tokenId": sale["tokenId"],
+                 "marketplace": sale["marketplace"],
+                 "sellerFee": int(sale["sellerFee"]["amount"]) / 10 ** 18,
+                 "protocolFee": int(sale["protocolFee"]["amount"]) / 10 ** 18,
+                 "royaltyFee": int(sale["royaltyFee"]["amount"]) / 10 ** 18,
+                 "payed": (int(sale["sellerFee"]["amount"]) + int(sale["protocolFee"]["amount"]) + int(sale["royaltyFee"]["amount"])) / 10 ** 18} for sale in data["nftSales"]]
     
     return activity
 
@@ -67,21 +68,9 @@ def get_rarity(API: str, address: str, tokenId: int) -> json:
     logging.info("Calculating rarity")
     result = 1
     for rarity in data:
-        result *= rarity['prevalence']
+        result *= rarity["prevalence"]
 
     return result
 
-#print(get_rarity(API_key, address_bayc, 5117))
 
-# if __name__ == "__main__":
-#     print("tests:")
-#     print(get_floor_price(API_key, address_bayc))
-#     print(get_activity_collection(API_key, address_bayc, 1))
-
-dictionaries = [{'value': 'Leather Jacket', 'trait_type': 'Clothes', 'prevalence': 0.0206}, {'value': 'Sad', 'trait_type': 'Eyes', 'prevalence': 0.0551}]
-
-result = 1
-for d in dictionaries:
-    result *= d['prevalence']
-
-print(result)
+print(get_activity_token(API_key, address_bayc, 2, 1800))
