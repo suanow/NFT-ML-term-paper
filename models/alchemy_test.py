@@ -57,9 +57,31 @@ def get_activity_token(API: str, address: str, limit: int, tokenId: int) -> json
     return activity
 
 
-print(get_activity_token(API_key, address_bayc, 1000, 5117))
+def get_rarity(API: str, address: str, tokenId: int) -> json:
+    logging.info("Sending request to API")
+    url = f"https://eth-mainnet.g.alchemy.com/nft/v2/{API}/computeRarity?contractAddress={address}&tokenId={tokenId}"
+    headers = {"accept": "application/json"}
+    response = requests.get(url, headers=headers)
+    data = json.loads(response.text)
+    
+    logging.info("Calculating rarity")
+    result = 1
+    for rarity in data:
+        result *= rarity['prevalence']
+
+    return result
+
+#print(get_rarity(API_key, address_bayc, 5117))
 
 # if __name__ == "__main__":
 #     print("tests:")
 #     print(get_floor_price(API_key, address_bayc))
 #     print(get_activity_collection(API_key, address_bayc, 1))
+
+dictionaries = [{'value': 'Leather Jacket', 'trait_type': 'Clothes', 'prevalence': 0.0206}, {'value': 'Sad', 'trait_type': 'Eyes', 'prevalence': 0.0551}]
+
+result = 1
+for d in dictionaries:
+    result *= d['prevalence']
+
+print(result)
