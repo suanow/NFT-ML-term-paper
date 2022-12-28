@@ -1,4 +1,4 @@
-# https://docs.alchemy.com/reference/getnftsales
+# https://docs.alchemy.com/reference/
 
 import requests
 import json
@@ -71,6 +71,3 @@ def get_rarity(API: str, address: str, tokenId: int) -> json:
         result *= rarity["prevalence"]
 
     return result
-
-
-print(get_activity_token(API_key, address_bayc, 2, 1800))
