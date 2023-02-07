@@ -37,7 +37,7 @@ def get_activity_collection(API: str, address: str, limit: int) -> json:
                  "price": int(sale["sellerFee"]["amount"]) / 10 ** 18} for sale in data["nftSales"]]
 
     
-    return activity
+    return json.dumps(data, indent=2)
 
 
 def get_activity_token(API: str, address: str, limit: int, tokenId: int) -> json:
@@ -71,3 +71,8 @@ def get_rarity(API: str, address: str, tokenId: int) -> json:
         result *= rarity["prevalence"]
 
     return result
+
+
+print(get_activity_collection(API=API_key, address=address_bayc, limit=10))
+
+
