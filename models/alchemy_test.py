@@ -24,7 +24,7 @@ def get_floor_price(API: str, address: str) -> dict:
     return prices
 
 
-def get_activity_collection(API: str, address: str, limit: int) -> json:
+def get_sales_collection(API: str, address: str, limit: int) -> json:
     logging.info("Sending request to API")
     url = f"https://eth-mainnet.g.alchemy.com/nft/v2/{API}/getNFTSales?fromBlock=0&toBlock=latest&order=desc&contractAddress={address}&limit={limit}"
     headers = {"accept": "application/json"}
@@ -34,13 +34,12 @@ def get_activity_collection(API: str, address: str, limit: int) -> json:
     logging.info("Creating a dictionary")
     activity = [{"tokenId": sale["tokenId"],
                  "marketplace": sale["marketplace"],
-                 "price": int(sale["sellerFee"]["amount"]) / 10 ** 18} for sale in data["nftSales"]]
+                 "price": (int(sale["sellerFee"]["amount"]) + int(sale["protocolFee"]["amount"]) + int(sale["royaltyFee"]["amount"])) / 10 ** 18} for sale in data["nftSales"]]
 
     
-    return json.dumps(data, indent=2)
+    return activity #json.dumps(data, indent=2)
 
-
-def get_activity_token(API: str, address: str, limit: int, tokenId: int) -> json:
+def get_sales_token(API: str, address: str, limit: int, tokenId: int) -> json:
     logging.info("Sending request to API")
     url = f"https://eth-mainnet.g.alchemy.com/nft/v2/{API}/getNFTSales?fromBlock=0&toBlock=latest&order=desc&contractAddress={address}&limit={limit}&tokenId={tokenId}"
     headers = {"accept": "application/json"}
@@ -58,21 +57,37 @@ def get_activity_token(API: str, address: str, limit: int, tokenId: int) -> json
     return activity
 
 
-def get_rarity(API: str, address: str, tokenId: int) -> json:
+def get_attributes(API: str, address: str, tokenId: int) -> json:
     logging.info("Sending request to API")
     url = f"https://eth-mainnet.g.alchemy.com/nft/v2/{API}/computeRarity?contractAddress={address}&tokenId={tokenId}"
     headers = {"accept": "application/json"}
     response = requests.get(url, headers=headers)
     data = json.loads(response.text)
+
+    return data
+
+
+def get_attributes_collection(API: str, address: str) -> json:
+    logging.info("Sending request to API")
+    url = f"https://eth-mainnet.g.alchemy.com/nft/v2/{API}/summarizeNFTAttributes?contractAddress={address}"
+    headers = {"accept": "application/json"}
+    response = requests.get(url, headers=headers)
+    data = json.loads(response.text)
+    
+    return data['summary']
+
+
+def get_rarity(API: str, address: str, tokenId: int) -> json:
+    data = get_attributes(API=API, address=address, tokenId=tokenId)
     
     logging.info("Calculating rarity")
     result = 1
     for rarity in data:
         result *= rarity["prevalence"]
-
+        
     return result
 
 
-print(get_activity_collection(API=API_key, address=address_bayc, limit=10))
-
-
+#print(get_activity_collection(API=API_key, address=address_bayc, limit=10))
+#print(get_collection_attributes(API=API_key, address=address_bayc))
+print(get_sales_collection(API=API_key, address=address_bayc, limit=1))
