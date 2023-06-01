@@ -25,19 +25,22 @@ def get_floor_price(API: str, address: str) -> dict:
 
 
 def get_sales_collection(API: str, address: str, limit: int) -> json:
-    logging.info("Sending request to API")
-    url = f"https://eth-mainnet.g.alchemy.com/nft/v2/{API}/getNFTSales?fromBlock=0&toBlock=latest&order=desc&contractAddress={address}&limit={limit}"
+    logging.info("Sending request to API")    
+    url = f"https://eth-mainnet.g.alchemy.com/nft/v3/{API}/getNFTSales?fromBlock=0&toBlock=latest&order=desc&marketplace=seaport&contractAddress={address}&limit={limit}"
     headers = {"accept": "application/json"}
     response = requests.get(url, headers=headers)
     data = json.loads(response.text)
     
     logging.info("Creating a dictionary")
+    # Use this to define price as all the money buyer paid to get NFT
+    # "price": (int(sale["sellerFee"]["amount"]) + int(sale["protocolFee"]["amount"]) + (0 if sale["royaltyFee"]["amount"] is None else int(sale["royaltyFee"]["amount"]))) / 10 ** 18} for sale in data["nftSales"]]
+    
     activity = [{"tokenId": sale["tokenId"],
                  "marketplace": sale["marketplace"],
-                 "price": (int(sale["sellerFee"]["amount"]) + int(sale["protocolFee"]["amount"]) + int(sale["royaltyFee"]["amount"])) / 10 ** 18} for sale in data["nftSales"]]
+                 "price": 0 if sale["sellerFee"]["amount"] is None else int(sale["sellerFee"]["amount"]) / 10 ** 18} for sale in data["nftSales"]]
 
-    
-    return activity #json.dumps(data, indent=2)
+    return activity
+
 
 def get_sales_token(API: str, address: str, limit: int, tokenId: int) -> json:
     logging.info("Sending request to API")
@@ -47,12 +50,17 @@ def get_sales_token(API: str, address: str, limit: int, tokenId: int) -> json:
     data = json.loads(response.text)
     
     logging.info("Creating a dictionary")
+    # Use this to calculate all the money buyer payed
+    # activity = [{"tokenId": sale["tokenId"],
+    #              "marketplace": sale["marketplace"],
+    #              "sellerFee": int(sale["sellerFee"]["amount"]) / 10 ** 18,
+    #              "protocolFee": int(sale["protocolFee"]["amount"]) / 10 ** 18,
+    #              "royaltyFee": int(sale["royaltyFee"]["amount"]) / 10 ** 18,
+    #              "payed": (int(sale["sellerFee"]["amount"]) + int(sale["protocolFee"]["amount"]) + int(sale["royaltyFee"]["amount"])) / 10 ** 18} for sale in data["nftSales"]]
+    
     activity = [{"tokenId": sale["tokenId"],
                  "marketplace": sale["marketplace"],
-                 "sellerFee": int(sale["sellerFee"]["amount"]) / 10 ** 18,
-                 "protocolFee": int(sale["protocolFee"]["amount"]) / 10 ** 18,
-                 "royaltyFee": int(sale["royaltyFee"]["amount"]) / 10 ** 18,
-                 "payed": (int(sale["sellerFee"]["amount"]) + int(sale["protocolFee"]["amount"]) + int(sale["royaltyFee"]["amount"])) / 10 ** 18} for sale in data["nftSales"]]
+                 "sellerFee": int(sale["sellerFee"]["amount"]) / 10 ** 18} for sale in data["nftSales"]]
     
     return activity
 
@@ -90,4 +98,7 @@ def get_rarity(API: str, address: str, tokenId: int) -> json:
 
 #print(get_activity_collection(API=API_key, address=address_bayc, limit=10))
 #print(get_collection_attributes(API=API_key, address=address_bayc))
-print(get_sales_collection(API=API_key, address=address_bayc, limit=1))
+#print(get_sales_collection(API=API_key, address=address_bayc, limit=1))
+print(get_attributes(API=API_key, address=address_bayc, tokenId=8230))
+#print(get_attributes_collection(API=API_key, address=address_bayc))
+#print(get_rarity(API=API_key, address=address_bayc, tokenId=8230))
